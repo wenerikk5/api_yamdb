@@ -146,6 +146,10 @@ dmypy.json
 .mypy_cache
 
 # папки со статикой и медиа
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 yatube_api/posts/static/
 media/
 

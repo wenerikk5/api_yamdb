@@ -145,11 +145,12 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         # Если изменяется категория произведения - удалим все
         # связанные записи в промежуточной таблице GenreTitle, и
         # заново создадим записи из переданных данных.
-        if 'genre' in validated_data.keys():
+        if validated_data.get('genre', -1) != -1:
 
             # Найдем все существующие связанные жанры и удалим их
             # после создания новых (нужна валидация полученных данных).
-            genre_items_to_delete = GenreTitle.objects.filter(title=instance.id)
+            genre_items_to_delete = GenreTitle.objects.filter(title__id=instance.id)
+            print("====GENRE ITEMS TO DELETE: ", genre_items_to_delete)
 
             # Непонятно почему без этой строчки все жанры произведения удаляются.
             print('====Genre items to delete: ', len(genre_items_to_delete))
@@ -157,7 +158,10 @@ class TitleWriteSerializer(serializers.ModelSerializer):
             # Создадим новые записи в таблице GenreTitle
             genres = validated_data.get('genre')
             for genre in genres:
-                current_genre, status = Genre.objects.get_or_create(**genre)
+                current_genre, status = Genre.objects.get_or_create(
+                    name=genre['name'],
+                    slug=genre['slug']
+                )
                 GenreTitle.objects.create(
                     genre=current_genre,
                     title=instance
@@ -165,6 +169,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
             # Если новые записи созданы успешно, то удаляем старые:
             if len(genre_items_to_delete) > 0:
+                print("====Genre items to delete before delete: ", genre_items_to_delete)
                 for item in genre_items_to_delete:
                     item.delete()
 
